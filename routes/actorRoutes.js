@@ -4,6 +4,7 @@ const Actor = require('../models/actor')
 const {addActorValidation} = require('./validation')
 
 
+// Get All Actors 
 
 router.get('/all', async (req , res) => {
 
@@ -11,6 +12,8 @@ router.get('/all', async (req , res) => {
     res.send(actor)
 
 })
+
+// Find One Name
 
 router.get('/find', async (req , res) => {
 
@@ -23,13 +26,20 @@ router.get('/find', async (req , res) => {
 
 })
 
+// Add Actor
+
 
 router.post('/add', async (req , res) => {
 
     const actor =  req.body
 
+// Data Validation
+
     const {error} = addActorValidation(actor)
     if(error) return res.status(400).send(error.details[0].message)
+
+
+// Check For Duplication
 
     const exist = await Actor.findOne({name: actor.name})
     if(exist) return res.status(400).send('Actor Already Exists!')
@@ -57,8 +67,10 @@ router.post('/update', async (req , res) => {
 
     const updateActor = req.body
 
+// Check Actor Exists
+
     const actor = await Actor.findOne({name: updateActor.name})
-    if(!actor) return res.status(400).send('Actor Already Exists!')
+    if(!actor) return res.status(400).send('Actor Does Not Exists!')
 
     try {
         

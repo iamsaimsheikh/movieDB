@@ -4,10 +4,12 @@ const Movie = require('../models/movie')
 const Actor = require('../models/actor')
 const Review = require('../models/review')
 const {addActorValidation,movieInfoValidation,movieReviewValidation} = require('./validation');
-const movie = require('../models/movie');
+const verify = require('./authToken')
 
 
 router.post('/add' , async (req, res) => {
+
+// Data Validation
 
     const movieData = req.body
 
@@ -23,6 +25,8 @@ router.post('/add' , async (req, res) => {
     const movieReviews = { user_id: movieData.review.user_id, name: movieData.review.name, review: movieData.review.review}
     const reviewError = movieReviewValidation(movieReviews).error
     if(reviewError) return res.status(400).send(reviewError.details[0].message)
+
+// Adding value
 
     const newMovie = new Movie()
     newMovie.name = movieData.name
@@ -71,12 +75,16 @@ router.post('/add' , async (req, res) => {
 
 })
 
+// Get All Movies
+
 router.get('/get-all', async (req , res) =>{
 
     const movie =  await Movie.find().populate('review actor')
     res.json(movie) 
 
 })
+
+// Get One Movie
 
 router.get('/get-specific', async (req , res) => {
 
@@ -86,7 +94,9 @@ router.get('/get-specific', async (req , res) => {
 
 })
 
-router.post('/add-review', async (req , res) =>{
+// Add review to a movie
+
+router.post('/add-review', verify , async (req , res) =>{
     
     const findMovie = req.body
     const review = { user_id: findMovie.review.user_id, name: findMovie.review.name, review: findMovie.review.review}
@@ -107,7 +117,9 @@ router.post('/add-review', async (req , res) =>{
     }
 })
 
-router.post('/update-rating', async (req , res) => {
+// Update Rating of a movie
+
+router.post('/update-rating', verify , async (req , res) => {
 
     const findMovie = req.body
     const newRating = findMovie.rating
@@ -129,12 +141,16 @@ router.post('/update-rating', async (req , res) => {
 
 })
 
+// Delete a movie
+
 router.delete('/delete-movie', async (req , res) => {
 
     await Movie.findOneAndDelete({name: req.body.name})
     res.send(`Deleted ${req.body.name}`)
 
 })
+
+// Find Movie By Genre
 
 router.get('/find-by-genre', async (req , res) => {
 
@@ -148,6 +164,8 @@ router.get('/find-by-genre', async (req , res) => {
     res.send(movieByGenre)
 
 })
+
+// Business done by Movies of a specific actor
 
 router.get('/business-done', async (req , res) => {
 

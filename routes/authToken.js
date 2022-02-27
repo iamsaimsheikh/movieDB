@@ -1,8 +1,12 @@
-const jwt = require('jwt')
+const jwt = require('jsonwebtoken')
 
-function auth ( req , res , next ){
+// Private Route Token Check
+
+module.exports = function( req , res , next ){
     const token = req.header('auth-token');
     if(!token) return res.status(401).send("Access Denied")
+
+// Verify User Has Token To Access The Route
 
     try {
         
