@@ -1,7 +1,8 @@
 const nodemailer = require('nodemailer')
 const uuid = require('uuid').v4;
 const bcrypt = require('bcrypt')
-const UserVerification = require('../models/userVerification')
+const UserVerification = require('../models/userVerification');
+const PasswordReset = require('../models/passwordReset');
 
 require('dotenv').config()
 
@@ -63,6 +64,57 @@ const sendUserVerificationEmail = async (id, email, res) => {
 
 }
 
+const sendResetEmail = async (_id, email, redirectUrl, res) => {
+
+    
+
+    const resetString = _id;
+
+    // Clear all existing reset records
+    await PasswordReset.deleteMany({userId: _id})
+    .then(result => {
+
+    const mailOptions = {
+        from: process.env.AUTH_EMAIL,
+        to: email,
+        subject: "Password Reset",
+        html: `<p>Reset Your Password</p><p>This link will <b>expire in 60 Minutes</b></p><p>Click <a href=${redirectUrl + "user/verify/" + _id + "/" + resetString}> Here </a> to proceed </p>`
+    }
+
+    const saltRounds = 5;
+    bcrypt.hash(resetString, saltRounds)
+    .then(hashedResetString => {
+        const newPasswordReset =  new PasswordReset({
+            userId: _id,
+            resetString: hashedResetString,
+            createdAt: Date.now(),
+            expiresAt: Date.now() + 360000
+        })
+
+        newPasswordReset.save()
+        .then(() => {
+            transporter.sendMail(mailOptions)
+            .then(() => {
+                res.send("Password Reset Email Sent Successfully!")
+            })
+        })
+        .catch(err => {
+            console.log(err)
+            res.send("Error while sending reset link")
+        })
+    })
+    .catch(err => {
+        console.log(err)
+        res.send('Error while hashing reset link')
+    })
+
+    })
+    .catch(err => {
+        res.send(err.message)
+    })
+}
+
 
 module.exports.sendUserVerificationEmail = sendUserVerificationEmail
+module.exports.sendResetEmail = sendResetEmail
 

@@ -3,8 +3,11 @@ const User = require('../models/user')
 const jwt = require('jsonwebtoken')
 const { userRegisterValidation, userLoginValidation } = require('../routes/validation')
 const uuid = require('uuid').v4;
-const {sendUserVerificationEmail} = require('./mailer');
+const {sendUserVerificationEmail, sendResetEmail} = require('./mailer');
 const UserVerification = require('../models/userVerification');
+const PasswordReset = require('../models/passwordReset');
+const user = require('../models/user');
+
 
 const userRegister = async (req, res) => {
 
@@ -52,10 +55,16 @@ const userLogin = async (req, res) => {
     const {error} = userLoginValidation(data);
     if(error) return res.status(400).send(error.details[0].message)
 
+
+
 // Data Validation
 
     const userExists = await User.findOne({email:data.email}) 
     if (!userExists) return res.status(400).send("Invalid Email Or Password")
+
+// User Verification
+
+    if(user.verified === false) return res.status(400).send("User is not verified")
 
 // Password Verification
 
@@ -75,33 +84,49 @@ const userLogin = async (req, res) => {
 
 const userVerify = async (req, res) => {
 
+    //  Get Data through parameters
+
     let {userId, uniqueString} = req.params
     
+    //  Check if user exists
 
    await UserVerification.findOne({userId: userId})
     .then(verification => {
+
+    // Check Expiry and hashed unique string
         
         const {expiresAt} = verification;
         const hashedUniqueString = verification.uniqueString;
+
+    //  If expired them clean up user and verification document
 
         if(expiresAt < Date.now){
             UserVerification.deleteOne({userId: userId})
             .then(() => {
                 User.findByIdAndDelete({userId: userId})
+                console.log("User with expired verification link deleted!")
             })
             .catch((err) => {
-                res.send('Verification link expired!')
+                res.send('Error deleting user with expired verification link!')
                 console.log(err);
             })
         }
         else {
+
+    //  Compare encryted string
             
              bcrypt.compare(uniqueString, hashedUniqueString)
              .then(result => {
                 if(result){
+
+    //  Update user and verify it
+
                     User.updateOne({_id: userId}, {verified: true})
                     .then(() => {
                         console.log("deleting User")
+
+    //  Clean up verification document
+
                         UserVerification.deleteOne({userId: verification.userId})
                     })
                     .catch(err => {
@@ -125,4 +150,103 @@ const userVerify = async (req, res) => {
 
 }
 
-module.exports = {userRegister: userRegister, userLogin: userLogin, userVerify: userVerify}
+const passwordReset = async (req, res) => {
+
+    const {email, redirectUrl} = req.body;
+    
+    // Check User Exists and Verified 
+
+    const userExists = await User.findOne({email: email})
+    if(!userExists) return res.status(400).send("User with provided email does not exist!")
+    if(userExists.verified == false) return res.status(400).send("User with provided email is not verified")
+
+    // Send Reset Email
+
+    await sendResetEmail(userExists._id, email, redirectUrl, res)
+
+}
+
+const setNewPassword = async (req, res) => {
+
+    // Get Data
+    const {_id, resetString, newPassword } = req.body;
+
+
+    // Find the password reset document
+
+    await  PasswordReset.findOne({userId: _id})
+    .then(response => {
+
+    // Get Expiry and Hashed Reset String of Password Reset Document
+
+        const {expiresAt} = response
+        const hashedResetString = response.resetString
+
+    //If expired then delete the password reset document  
+
+        if( Date.now() > expiresAt ){
+            PasswordReset.findOneAndDelete({userId: _id})
+            .then(() => {
+                res.send("Your password verification link has been expired, please request a new one!")
+            })
+            .catch((err) => {
+                res.send("Error deleting expired password reset link!")
+            })
+        }
+        else {
+
+    //  Compare reset string
+
+            bcrypt.compare(resetString, hashedResetString)
+            .then((result) =>{
+                console.log(result)
+                if(result){
+
+    //  Create New Hashed Password
+
+                    const saltRounds = 5 
+                    const newHashedPassword = bcrypt.hash(newPassword, saltRounds)
+
+    //  Update the user password 
+
+                    .then(hashedPassword => {
+                        User.updateOne({userId: _id}, {password:hashedPassword})
+
+    //  Clean up the password reset document
+
+                    .then((response) => {
+                        PasswordReset.findOneAndDelete({hashedResetString})
+                        .then(() => {
+                            console.log("Password Reset Deleted Successfully")
+                        })
+                        .catch(err => {
+                            console.log('Could Not Delete Password Reset Document')
+                            res.send(err)
+                        })
+                        res.send("Password Reset Successfully!")
+                    })
+                    .catch(err => {
+                        console.log(err)
+                        res.send("Error resetting password!")
+                    })
+                    })
+                }
+                else{
+                    res.send("Invalid user credentials passed!")
+                }
+            })
+            .catch(err => {
+                console.log(err)
+                res.send("Error comparing hashed reset string")
+            })
+        }
+
+
+    })
+    .catch(err => {
+        res.status(400).send("Invalid Password Reset Link")
+        console.log(err)
+    })
+}
+
+module.exports = {userRegister: userRegister, userLogin: userLogin, userVerify: userVerify, passwordReset: passwordReset, setNewPassword: setNewPassword}

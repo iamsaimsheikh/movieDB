@@ -15,7 +15,15 @@ router.post('/login', async ( req, res ) => {
 })
 
 router.post('/verify/:userId/:uniqueString', async (req, res) => {
-    UserServ.userVerify(req, res)
+    UserServ.userVerify(req, res);
+})
+
+router.post('/passwordReset', async (req, res) => {
+    UserServ.passwordReset(req, res);
+})
+
+router.post('/setNewPassword', async (req, res) => {
+    UserServ.setNewPassword(req, res);
 })
 
 module.exports = router
