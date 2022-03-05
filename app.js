@@ -32,8 +32,6 @@ app.use('/movie', movieRoutes)
 
 
 
-
-
 app.listen(process.env.PORT, () => {
   console.log(`listening at http://localhost:${process.env.PORT}`);
 });

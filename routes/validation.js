@@ -9,7 +9,7 @@ const userRegisterValidation = data => {
         name: Joi.string().min(3).required().regex(/^[a-zA-Z ]*$/),
         email: Joi.string().email().required(),
         phone: Joi.number().required().min(7),
-        password: Joi.string().required().min(8)
+        password: Joi.string().required().min(8),
     })
 
     return schema.validate(data)
@@ -20,7 +20,7 @@ const userLoginValidation = data => {
 
     const schema = Joi.object({
         email: Joi.string().email().required(),
-        password: Joi.string().required().min(8)
+        password: Joi.string().required().min(8),
     })
 
     return schema.validate(data)
