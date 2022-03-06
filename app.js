@@ -1,6 +1,7 @@
 // library imports
 const express = require('express');
 const cors = require('cors');
+const fileUpload = require('express-fileupload')
 const bodyParser = require('body-parser');
 
 
@@ -18,6 +19,7 @@ app.use(express.json());
 app.use(bodyParser.json({extended:true}));
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(cors());
+app.use(fileUpload({useTempFiles: true}))
 
 //routes
 const userRoutes = require('./routes/userRoutes')

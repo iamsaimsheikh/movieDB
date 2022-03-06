@@ -6,7 +6,9 @@ const uuid = require('uuid').v4;
 const {sendUserVerificationEmail, sendResetEmail} = require('./mailer');
 const UserVerification = require('../models/userVerification');
 const PasswordReset = require('../models/passwordReset');
-const user = require('../models/user');
+const {cloudinary} = require('../config/cloudinary');
+const Actor =  require('../models/actor');
+const Movie =  require('../models/movie');
 
 
 const userRegister = async (req, res) => {
@@ -64,7 +66,7 @@ const userLogin = async (req, res) => {
 
 // User Verification
 
-    if(user.verified === false) return res.status(400).send("User is not verified")
+    if(userExists.verified === false) return res.status(400).send("User is not verified")
 
 // Password Verification
 
@@ -249,4 +251,75 @@ const setNewPassword = async (req, res) => {
     })
 }
 
-module.exports = {userRegister: userRegister, userLogin: userLogin, userVerify: userVerify, passwordReset: passwordReset, setNewPassword: setNewPassword}
+const uploadActorPicture = async (req, res) => {
+
+    // Find the actor
+
+    const {actor} = req.body
+
+    const actorExists = await Actor.findOne({name:actor})
+    if(!actorExists) return res.status(400).send("Actor not found")
+
+    // Upload image to cloudinary
+
+    const uploadedResponse = await cloudinary.uploader.
+    upload(req.files.image.tempFilePath, {
+        folder: "movieDb"
+    })
+    .then((response) => {
+
+    // Save image path in the Actor document
+
+        actorExists.update({picture: response.url})
+        .then(() => {
+            res.send("Profile Picture Updated")
+        })
+        .catch(err => {
+            res.send(err.message)
+        })
+        res.send("Image uploaded successfully")
+    })
+    .catch(err => {
+        console.log(err)
+    })
+
+
+}
+
+const addMoviePoster = async (req, res) => {
+
+    // Find the movie
+
+    const {movie} = req.body
+
+    const movieExists = await Movie.findOne({name:movie})
+    if(!movieExists) return res.status(400).send("Movie not found")
+ 
+    // Upload movie poster to cloudinary
+
+    const uploadedResponse = await cloudinary.uploader.
+    upload(req.files.image.tempFilePath, {
+        folder: "movieDb"
+    })
+    .then((response) => {
+
+    // Push the new poster link to the posters array in movie document and save
+    
+        movieExists.posters.push(response.url)
+        movieExists.save()
+        .then(() => {
+            res.send("Poster Added")
+        })
+        .catch(err => {
+            res.send(err.message)
+        })
+    })
+    .catch(err => {
+        console.log(err)
+    })
+
+}
+
+module.exports = {userRegister: userRegister, userLogin: userLogin, userVerify: userVerify,
+     passwordReset: passwordReset, setNewPassword: setNewPassword,
+      uploadActorPicture: uploadActorPicture, addMoviePoster: addMoviePoster}

@@ -6,6 +6,7 @@ const Schema = mongoose.Schema
 const movieSchema = mongoose.Schema({
     name: String,
     genre: [],
+    posters: [],
     actor: [{type: Schema.Types.ObjectId , ref: 'actor'}],
     business_done : Number,
     rating: {totalVotes:0, rating:0},

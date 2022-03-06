@@ -35,6 +35,7 @@ const addActor = async (req, res) => {
         if(exist) return res.status(400).send('Actor Already Exists!')
     
         const newActor = new Actor({
+            picture: null,
             name: actor.name,
             age: actor.age,
             gender: actor.gender

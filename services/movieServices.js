@@ -27,6 +27,7 @@ const addMovie = async (req, res) => {
     const newMovie = new Movie()
     newMovie.name = movieData.name
     newMovie.genre = [...movieData.genre]
+    newMovie.posters = []
     newMovie.business_done= movieData.business_done
 
     if(!actorError){
