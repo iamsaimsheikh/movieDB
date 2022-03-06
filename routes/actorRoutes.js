@@ -24,7 +24,13 @@ router.post('/add', async (req , res) => {
 // Update Actor
 
 router.post('/update', async (req , res) => {
-    ActorServ.updateActor
+    ActorServ.updateActor(req, res)
+})
+
+// Get Actors From Dummy Api
+
+router.get('/getActorFromApi', async (req, res) => {
+    ActorServ.getActorFromApi(req, res);
 })
 
 
