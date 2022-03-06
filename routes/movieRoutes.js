@@ -50,4 +50,8 @@ router.get('/business-done', async (req , res) => {
     MovieServ.businessDone(req, res);
 })
 
+router.get('/exportToCsv', async (req, res) => {
+    MovieServ.exportToCsv(req, res);
+})
+
 module.exports = router

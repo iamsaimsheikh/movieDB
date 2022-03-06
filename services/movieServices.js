@@ -1,6 +1,7 @@
 const Movie = require('../models/movie')
 const Actor = require('../models/actor')
 const Review = require('../models/review')
+const {Parser} = require('json2csv')
 const {addActorValidation,movieInfoValidation,movieReviewValidation} = require('../routes/validation');
 
 const addMovie = async (req, res) => {
@@ -161,6 +162,31 @@ const businessDone = async (req, res) => {
 
 }
 
+const exportToCsv = async (req, res) => {
+
+    // Get movies from mongoDb
+
+    const json2csv = new Parser()
+
+    const movies = await Movie.find().populate('rating review actor').lean().exec()
+    .then((movies) => {
+
+    // Parse json to csv 
+
+        const csv =  json2csv.parse(movies)
+        res.attachment('movies.csv')
+        res.status(200).send(csv)
+
+    })
+    .catch(err => {
+        console.log(err)
+        res.status(500).send(err)
+    })
+
+
+}
+
 
 module.exports = {addMovie: addMovie, getAll: getAll, getSpecific: getSpecific, addReview: addReview,
-                updateRating: updateRating, deleteMovie: deleteMovie, findByGenre: findByGenre, businessDone: businessDone}
+                updateRating: updateRating, deleteMovie: deleteMovie,
+                 findByGenre: findByGenre, businessDone: businessDone, exportToCsv: exportToCsv}
