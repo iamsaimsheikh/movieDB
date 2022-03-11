@@ -9,6 +9,8 @@ const PasswordReset = require('../models/passwordReset');
 const {cloudinary} = require('../config/cloudinary');
 const Actor =  require('../models/actor');
 const Movie =  require('../models/movie');
+const fileUpload = require('../config/firebaseUpload')
+const { auth } = require('express-openid-connect');
 
 
 const userRegister = async (req, res) => {
@@ -75,12 +77,14 @@ const userLogin = async (req, res) => {
 
 // Generating JWT
 
-    if( userExists && validPass ) {
+    // if( userExists && validPass ) {
         
-        const token = jwt.sign({_id:userExists._id},process.env.TOKEN_SECRET);
-        res.header('auth-token', token).send(token);
+    //     const token = jwt.sign({_id:userExists._id},process.env.TOKEN_SECRET);
+    //     res.header('auth-token', token).send(token);
 
-    }    
+    // } 
+    
+    res.send(req.oic.isAuthenticated() ? 'Logged in' : 'Logged Out')
 
 }
 
@@ -254,69 +258,110 @@ const setNewPassword = async (req, res) => {
 const uploadActorPicture = async (req, res) => {
 
     // Find the actor
-
+    // To Access Images req.files.image.tempFilePath
+    // To Access Data req.body
     const {actor} = req.body
+    const image = req.files.image
 
     const actorExists = await Actor.findOne({name:actor})
     if(!actorExists) return res.status(400).send("Actor not found")
 
-    // Upload image to cloudinary
+    // upload picture to firebase
 
-    const uploadedResponse = await cloudinary.uploader.
-    upload(req.files.image.tempFilePath, {
-        folder: "movieDb"
-    })
-    .then((response) => {
-
-    // Save image path in the Actor document
-
-        actorExists.update({picture: response.url})
-        .then(() => {
+    const getImageUrl = await fileUpload(image.tempFilePath, image.name)
+    
+    if(getImageUrl){
+    await actorExists.update({picture: getImageUrl})
+        .then(response => {
             res.send("Profile Picture Updated")
         })
         .catch(err => {
-            res.send(err.message)
+            res.send("Could not update profile picture")
+            console.log(err)
         })
-        res.send("Image uploaded successfully")
-    })
-    .catch(err => {
-        console.log(err)
-    })
+    }
+
+    
+    
+
+
+    // // Upload image to cloudinary
+
+    // const uploadedResponse = await cloudinary.uploader.
+    // upload(req.files.image.tempFilePath, {
+    //     folder: "movieDb"
+    // })
+    // .then((response) => {
+
+    // // Save image path in the Actor document
+
+    //     actorExists.update({picture: response.url})
+    //     .then(() => {
+    //         res.send("Profile Picture Updated")
+    //     })
+    //     .catch(err => {
+    //         res.send(err.message)
+    //     })
+    //     res.send("Image uploaded successfully")
+    // })
+    // .catch(err => {
+    //     console.log(err)
+    // })
+
+    
 
 
 }
 
 const addMoviePoster = async (req, res) => {
 
-    // Find the movie
-
+    // Find the actor
+    // To Access Images req.files.image.tempFilePath
+    // To Access Data req.body
     const {movie} = req.body
+    const image = req.files.image
 
     const movieExists = await Movie.findOne({name:movie})
     if(!movieExists) return res.status(400).send("Movie not found")
- 
-    // Upload movie poster to cloudinary
 
-    const uploadedResponse = await cloudinary.uploader.
-    upload(req.files.image.tempFilePath, {
-        folder: "movieDb"
-    })
-    .then((response) => {
+    // upload picture to firebase
 
-    // Push the new poster link to the posters array in movie document and save
+    const getImageUrl = await fileUpload(image.tempFilePath, image.name)
     
-        movieExists.posters.push(response.url)
-        movieExists.save()
-        .then(() => {
-            res.send("Poster Added")
+    if(getImageUrl){
+          movieExists.poster.push(getImageUrl)
+    await movieExists.save()
+        .then(response => {
+            res.send("Movie Poster Added!")
         })
         .catch(err => {
-            res.send(err.message)
+            res.send("Could not add Poster")
+            console.log(err)
         })
-    })
-    .catch(err => {
-        console.log(err)
-    })
+    }
+ 
+    // // Upload movie poster to cloudinary
+
+    // const uploadedResponse = await cloudinary.uploader.
+    // upload(req.files.image.tempFilePath, {
+    //     folder: "movieDb"
+    // })
+    // .then((response) => {
+
+    // // Push the new poster link to the posters array in movie document and save
+    
+    //     movieExists.posters.push(response.url)
+    //     movieExists.save()
+    //     .then(() => {
+    //         res.send("Poster Added")
+    //     })
+    //     .catch(err => {
+    //         res.send(err.message)
+    //     })
+    // })
+    // .catch(err => {
+    //     console.log(err)
+    // })
 
 }
 

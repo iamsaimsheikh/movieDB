@@ -1,0 +1,14 @@
+<div style="font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; width: 95vw; height: 95vh; display:flex; justify-content:center; align-items:center; flex-direction:column" >
+
+<h1 style="font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color:#f7f7f7">ACTORS</h1>
+
+
+{{#each results}}
+<a href="/actor/find/{{name}}" style="list-style-type: none; text-decoration:none;">
+<div style="border: 1px solid #dddddd; margin:5px; width: 20vw; text-align:center; border-radius:10px;">
+<h4 style="font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color:#f7f7f7">{{name}}</h4>
+</div>
+</a>
+{{/each}}
+
+</div>

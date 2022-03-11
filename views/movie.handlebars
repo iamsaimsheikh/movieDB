@@ -1,0 +1,18 @@
+<div style="font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; width: 95vw; height: 95vh; display:flex; justify-content:center; align-items:center; flex-direction:column" >
+
+<h4 style="font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif; color:#eeeeee; border-bottom: 2px solid #eeeeee;">Movie Info</h4>
+
+
+    {{!-- <img src={{movie.picture}} height="100" width="100" style="border-radius: 50%;" />  --}}
+    <h2 style="font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color:#f7f7f7; text-align:center">
+    {{movie.name}}  <p style="font-size: medium; text-align:center; font-weight:300;"> <b>Genre: </b> {{movie.genre}}
+         <p style="font-size: medium; text-align:center; font-weight:300;"> <b>Business Done: </b> {{movie.business_done}} </p> </p>
+         <p style="font-size: medium; text-align:center; font-weight:300;"> <b>Rating: </b> {{movie.rating.rating}} ({{movie.rating.totalVotes}} Votes) </p>
+    </h2>
+    <h3 style="font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color:#f7f7f7">Reviews</h3>
+    {{#each movie.review}}
+    <p style="font-size: medium; text-align:start; font-weight:300; color:#fafafa"> "{{review}}" - <b>{{name}}</b> </p>
+    {{/each}}
+
+
+</div>

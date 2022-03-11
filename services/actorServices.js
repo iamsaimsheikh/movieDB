@@ -1,23 +1,27 @@
-const Actor = require('../models/actor')
 const {addActorValidation} = require('../routes/validation')
+const paginatedResults =  require('./paginatedResults')
+const fileUpload = require('../config/firebaseUpload')
+const finder = require('findit')
+const Actor = require('../models/actor')
 const axios = require('axios').default
 const fs = require('fs')
 
 const getAll = async (req, res) => {
 
-    const actor = await Actor.find()
-    res.send(actor)
-
+   paginatedResults(Actor, req, res);
+   
+   
 }
 
 const findOne = async (req, res) => {
     
-    const find = req.body
+    const find = req.params.name
 
-    const actor = await Actor.findOne({name: find.name})
+    const actor = await Actor.findOne({name: find}).lean()
     if(!actor) return res.status(400).send('Not Found')
 
-    res.send(actor)
+    
+    res.render('actor', {actor:actor})
 
 }
 
@@ -79,6 +83,9 @@ const updateActor = async (req, res) => {
 
 const getActorFromApi = async (req, res) => {
 
+
+    
+
     const limit = 100
     const convertedData = []
 
@@ -92,6 +99,7 @@ const getActorFromApi = async (req, res) => {
     // Modify actor data according to requirements and schema
 
          data.forEach(item => {
+             
 
             const modifyActor = {
                 picture: item.picture,
@@ -100,22 +108,26 @@ const getActorFromApi = async (req, res) => {
                 gender: item.title == 'mr' ? 'male' : 'female', 
             }
 
+            console.log(item)
+
             convertedData.push(modifyActor)
 
     // Pass picture links of each actor to download
 
-             const download = axios.get(item.picture, { responseType: 'stream'})
-             .then(response => {
-                 response.data.pipe(fs.createWriteStream(`${item.firstName}.jpg`))
-             })
-             .catch(err => {
-                 res.send(err)
-             })
+            //  const download = axios.get(item.picture, { responseType: 'stream'})
+            //  .then(response => {
+            //      response.data.pipe(fs.createWriteStream(`${item.firstName}.jpg`))
+            //  })
+            //  .catch(err => {
+            //      res.send(err)
+            //  })
             })
      })
      .catch(err => {
          res.send(err)
      })
+
+    //  await Actor.deleteMany()
 
 
     // Store multiple actors in db
@@ -129,5 +141,13 @@ const getActorFromApi = async (req, res) => {
      })
 
 }
+
+
+    
+    
+
+    
+
+
 
 module.exports = {getAll: getAll, findOne: findOne, addActor: addActor, updateActor: updateActor, getActorFromApi: getActorFromApi}

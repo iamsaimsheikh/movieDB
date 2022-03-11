@@ -10,13 +10,13 @@ router.post('/add' , async (req, res) => {
 
 // Get All Movies
 
-router.get('/get-all', async (req , res) =>{
+router.get('/all/:page/:limit', async (req , res) =>{
     MovieServ.getAll(req, res);
 })
 
 // Get One Movie
 
-router.get('/get-specific', async (req , res) => {
+router.get('/find/:name', async (req , res) => {
     MovieServ.getSpecific(req, res)
 })
 

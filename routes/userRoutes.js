@@ -12,7 +12,7 @@ router.post('/register', async ( req, res ) => {
 
 // User Login
 
-router.post('/login', async ( req, res ) => {
+router.get('/login', async ( req, res ) => {
     UserServ.userLogin(req, res);
 })
 

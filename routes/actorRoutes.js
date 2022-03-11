@@ -5,13 +5,13 @@ const ActorServ = require('../services/actorServices')
 
 // Get All Actors 
 
-router.get('/all', async (req , res) => {
+router.get('/all/:page/:limit', async (req , res) => {
     ActorServ.getAll(req, res);
 })
 
 // Find One Name
 
-router.get('/find', async (req , res) => {
+router.get('/find/:name', async (req , res) => {
    ActorServ.findOne(req, res);
 })
 
@@ -29,8 +29,8 @@ router.post('/update', async (req , res) => {
 
 // Get Actors From Dummy Api
 
-router.get('/getActorFromApi', async (req, res) => {
-    ActorServ.getActorFromApi(req, res);
+router.get('/getActorFromApi', async (req, res, next) => {
+    ActorServ.getActorFromApi(req, res, next);
 })
 
 

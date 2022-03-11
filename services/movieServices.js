@@ -1,7 +1,9 @@
+
 const Movie = require('../models/movie')
 const Actor = require('../models/actor')
 const Review = require('../models/review')
 const {Parser} = require('json2csv')
+const paginatedResults = require('./paginatedResults')
 const {addActorValidation,movieInfoValidation,movieReviewValidation} = require('../routes/validation');
 
 const addMovie = async (req, res) => {
@@ -72,16 +74,16 @@ const addMovie = async (req, res) => {
 
 const getAll = async (req, res) => {
 
-    const movie =  await Movie.find().populate('review actor')
-    res.json(movie) 
+   paginatedResults(Movie, req, res)
+   
 
 }
 
 const getSpecific = async (req, res) => {
 
-    const findMovie = req.body
-    const movie =  await Movie.find({name: findMovie.name}).populate('review actor')
-    res.json(movie)
+    const find = req.params.name
+    const movie =  await Movie.findOne({name: find}).populate('review actor').lean()
+    res.render('movie',{movie:movie})
 
 }
 
