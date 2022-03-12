@@ -5,13 +5,13 @@ const ActorServ = require('../services/actorServices')
 
 // Get All Actors 
 
-router.get('/all/:page/:limit', async (req , res) => {
+router.get('/all/:page/:limit', (req , res) => {
     ActorServ.getAll(req, res);
 })
 
 // Find One Name
 
-router.get('/find/:name', async (req , res) => {
+router.get('/find/:name', (req , res) => {
    ActorServ.findOne(req, res);
 })
 
