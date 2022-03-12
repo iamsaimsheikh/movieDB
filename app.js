@@ -52,9 +52,7 @@ const movieRoutes = require('./routes/movieRoutes')
 app.use('/movie', movieRoutes)
 
 app.get('/', (req, res) => {
-  if(req.oidc.isAuthenticated()){
   res.redirect('/movie/all/1/5')
-  }
 })
 
 const port = process.env.PORT || 5000
